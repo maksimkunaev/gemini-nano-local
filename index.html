@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chrome Gemini Nano - Local AI Demo</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #fff;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .info {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #promptInput {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        #promptInput:focus {
+            outline: none;
+            border-color: #007aff;
+        }
+
+        .file-label {
+            padding: 12px 20px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            cursor: pointer;
+            white-space: nowrap;
+            font-size: 14px;
+            transition: background 0.2s;
+        }
+
+        .file-label:hover {
+            background: #e0e0e0;
+        }
+
+        #imagePreview {
+            display: none;
+            width: 160px;
+            /* фиксированная аккуратная ширина */
+            height: auto;
+            max-height: 140px;
+            /* маленький размер */
+            object-fit: contain;
+            margin: 10px auto 20px;
+            /* перенос вниз + центр */
+            border-radius: 10px;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.35s ease, transform 0.35s ease;
+        }
+
+        #imagePreview.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+
+
+        #analyzeBtn {
+            width: 100%;
+            padding: 14px;
+            background: #007aff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        #analyzeBtn:hover {
+            background: #0051d5;
+        }
+
+        #analyzeBtn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #output {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+            font-family: 'Monaco', 'Courier New', monospace;
+            font-size: 13px;
+            background: #fafafa;
+            min-height: 100px;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .error {
+            color: #d32f2f;
+            background: #ffebee;
+            padding: 12px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Chrome Gemini Nano Demo</h1>
+    <p class="info">
+        Local AI running in your browser. Supports text and image inputs.<br>
+        Requires Chrome 138+ with experimental flags enabled.
+    </p>
+
+    <!-- 1) Сначала текстовый вывод -->
+    <div id="output"></div>
+
+    <!-- 2) Ниже — изображение (уменьшенное) -->
+    <img id="imagePreview" alt="Selected image" />
+
+    <!-- 3) Ещё ниже — поле ввода + кнопка -->
+    <div class="input-group">
+        <input type="text" id="promptInput" placeholder="Enter text prompt..." />
+        <label class="file-label">
+            Image
+            <input type="file" id="imageInput" accept="image/*" style="display: none;" />
+        </label>
+    </div>
+
+    <button id="analyzeBtn">Generate</button>
+
+    <script>
+        class Agent {
+            constructor() {
+                this.session = null;
+            }
+
+            async init() {
+                this.session = await LanguageModel.create({
+                    expectedInputs: [{ type: "image" }]
+                });
+            }
+
+            async analyze(text, image = null) {
+                const content = [{ type: 'text', value: text }];
+                if (image) {
+                    content.push({ type: 'image', value: image });
+                }
+
+                let result = '';
+                const stream = this.session.promptStreaming([{
+                    role: 'user',
+                    content
+                }]);
+
+                for await (const chunk of stream) {
+                    result += chunk;
+                    output.textContent = result;
+                }
+
+                return result;
+            }
+        }
+
+        const agent = new Agent();
+        const output = document.getElementById('output');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const promptInput = document.getElementById('promptInput');
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+
+        imageInput.onchange = (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+
+                    requestAnimationFrame(() => {
+                        imagePreview.classList.add('visible');
+                    });
+                };
+                reader.readAsDataURL(file);
+            }
+        };
+
+
+        analyzeBtn.onclick = async () => {
+            const text = promptInput.value.trim();
+
+            if (!text) {
+                alert('Please enter a text prompt');
+                return;
+            }
+
+            try {
+                analyzeBtn.disabled = true;
+                output.textContent = 'Initializing...\n';
+
+                await agent.init();
+
+                output.textContent = 'Analyzing...\n\n';
+
+                const file = imageInput.files[0] || null;
+                await agent.analyze(text, file);
+
+            } catch (error) {
+                output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            } finally {
+                analyzeBtn.disabled = false;
+            }
+        };
+    </script>
+</body>
+
+</html>
