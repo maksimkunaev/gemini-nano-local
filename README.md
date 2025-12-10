@@ -47,4 +47,9 @@ The model downloads automatically on first use:
 
 Once downloaded, check the status at `chrome://on-device-internals`:
 
-See original documentation: https://developer.chrome.com/docs/ai/prompt-api
+
+### 4. UI ![UI view](screenshots/ui.png)
+
+### 5. See original documentation: 
+https://developer.chrome.com/docs/ai/prompt-api
+
