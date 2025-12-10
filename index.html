@@ -70,13 +70,13 @@
         #imagePreview {
             display: none;
             width: 160px;
-            /* фиксированная аккуратная ширина */
+            /* fixed clean width */
             height: auto;
             max-height: 140px;
-            /* маленький размер */
+            /* small size */
             object-fit: contain;
             margin: 10px auto 20px;
-            /* перенос вниз + центр */
+            /* positioned below + centered */
             border-radius: 10px;
             opacity: 0;
             transform: translateY(6px);
@@ -87,8 +87,6 @@
             opacity: 1;
             transform: translateY(0);
         }
-
-
 
         #analyzeBtn {
             width: 100%;
@@ -144,13 +142,13 @@
         Requires Chrome 138+ with experimental flags enabled.
     </p>
 
-    <!-- 1) Сначала текстовый вывод -->
+    <!-- 1) Output text appears first -->
     <div id="output"></div>
 
-    <!-- 2) Ниже — изображение (уменьшенное) -->
+    <!-- 2) Smaller image preview below -->
     <img id="imagePreview" alt="Selected image" />
 
-    <!-- 3) Ещё ниже — поле ввода + кнопка -->
+    <!-- 3) Input field + button placed below -->
     <div class="input-group">
         <input type="text" id="promptInput" placeholder="Enter text prompt..." />
         <label class="file-label">
@@ -209,6 +207,7 @@
                     imagePreview.src = e.target.result;
                     imagePreview.style.display = 'block';
 
+                    // activate smooth fade-in animation
                     requestAnimationFrame(() => {
                         imagePreview.classList.add('visible');
                     });
@@ -216,7 +215,6 @@
                 reader.readAsDataURL(file);
             }
         };
-
 
         analyzeBtn.onclick = async () => {
             const text = promptInput.value.trim();
