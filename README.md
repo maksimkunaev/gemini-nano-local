@@ -1,55 +1,87 @@
-# Chrome Prompt API Demo
+# Chrome Prompt API Demo (Gemini Nano)
 
-Local AI-powered text and image analysis using Gemini Nano directly in your browser. Works completely offline after initial setup.
+A single-page demo of Chrome's built-in Prompt API: text and image prompts answered by Gemini Nano running locally in the browser, with streaming output.
 
-## Features
+![UI view](screenshots/ui.png)
 
-- 🚀 Runs locally without internet connection
-- 🖼️ Supports image analysis
-- ⚡ Streaming responses for real-time output
-- 🔒 Privacy-first - no data leaves your device
-- 💰 Zero API costs
+## What it does
+
+- Sends a text prompt, optionally with an image, to Chrome's on-device `LanguageModel` (Gemini Nano).
+- Streams the model's answer into the page as it is generated.
+- Runs entirely on your machine: after the model is downloaded there are no network calls and no API costs.
+
+## Tech stack
+
+- Plain HTML, CSS and JavaScript in one file (`index.html`), no build step and no dependencies
+- [Chrome Prompt API](https://developer.chrome.com/docs/ai/prompt-api) (`LanguageModel.create`, `promptStreaming`) with multimodal (image) input
 
 ## Requirements
 
-### Hardware
-- **Storage**: 22GB free disk space (model is ~4GB)
-- **GPU**: 4GB+ VRAM, OR
-- **CPU**: 16GB+ RAM with 4+ cores
+Hardware (from Chrome's requirements for Gemini Nano):
 
-### Software
-- **Chrome**: Version 138 or later
-- **OS**: Windows 10/11, macOS 13+, Linux, or ChromeOS
+- Storage: 22 GB free disk space (the model itself is about 4 GB)
+- GPU with 4 GB+ VRAM, or a CPU with 16 GB+ RAM and 4+ cores
 
-## Setup Instructions
+Software:
 
-### 1. Enable Chrome Flags
+- Chrome 138 or later
+- Windows 10/11, macOS 13+, Linux, or ChromeOS
 
-1. Open Chrome and navigate to `chrome://flags`
-2. Search and enable these two flags:
+The Prompt API is still evolving and its surface has changed between Chrome versions. This demo targets the Chrome 138+ API shape (`LanguageModel` global, `expectedInputs`, message objects with `content` arrays).
+
+## Getting started
+
+### 1. Enable Chrome flags
+
+1. Open `chrome://flags` in Chrome.
+2. Enable both flags:
    - `chrome://flags#optimization-guide-on-device-model`
    - `chrome://flags#prompt-api-for-gemini-nano-multimodal-input`
-3. Click **Relaunch** button at the bottom
+3. Click **Relaunch**.
 
-### 2. Download the Model
+### 2. Open the page
+
+Clone the repo and open `index.html` in Chrome:
+
+```bash
+git clone https://github.com/maksimkunaev/gemini-nano-local.git
+cd gemini-nano-local
+```
+
+You can open the file directly, or serve the folder locally if you prefer, for example:
+
+```bash
+python3 -m http.server 8000
+# then open http://localhost:8000
+```
+
+### 3. Download the model
 
 The model downloads automatically on first use:
 
-1. Open `index.html` in Chrome
-2. Enter any prompt and click **Generate**
-3. Wait for download to complete (~4GB, takes 10-20 minutes)
+1. Enter any prompt and click **Generate**.
+2. Wait for the download to finish (about 4 GB; it can take 10 to 20 minutes).
 
-**Track download progress:**
-- Open `chrome://on-device-internals` in a new tab
-- Check "Foundational Model" section for download status
+To track progress, open `chrome://on-device-internals` and check the "Foundational Model" section. Once the model shows as ready, prompts run offline.
 
-### 3. Verify Installation
+## Project structure
 
-Once downloaded, check the status at `chrome://on-device-internals`:
+```
+.
+├── index.html        # The whole app: UI, styles and Prompt API calls
+└── screenshots/
+    └── ui.png        # Screenshot used in this README
+```
 
+## Known issues
 
-### 4. UI ![UI view](screenshots/ui.png)
+- A new model session is created on every click of **Generate**, so there is no conversation memory between prompts.
+- If the API is unavailable (flags off, unsupported Chrome, model not downloaded) the page shows the browser's error message.
 
-### 5. See original documentation: 
-https://developer.chrome.com/docs/ai/prompt-api
+## Further reading
 
+- Chrome Prompt API documentation: https://developer.chrome.com/docs/ai/prompt-api
+
+## License
+
+MIT, see [LICENSE](LICENSE).

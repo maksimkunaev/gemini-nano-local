@@ -236,7 +236,10 @@
                 await agent.analyze(text, file);
 
             } catch (error) {
-                output.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+                const errorBox = document.createElement('div');
+                errorBox.className = 'error';
+                errorBox.textContent = `Error: ${error.message}`;
+                output.replaceChildren(errorBox);
             } finally {
                 analyzeBtn.disabled = false;
             }
